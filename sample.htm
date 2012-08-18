@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+    <style>
+    canvas {
+        border: 3px #000000 solid ;
+    }
+    </style>
+    <script type="text/javascript" src="inputcanvas_2.0.js"></script>
+    <script type="text/javascript">
+            window.onload = function(){
+                var canvas = document.getElementById('myCanvas');
+                var Form = new FormCanvas(canvas);
+                var inp = Form.AddInput(30,20,200,100);
+                inp.SetBorder(5, "#FF0000", 100);
+                inp.SetFont(34, "#000000", "Arial","left");
+                inp.SetShadow("#CCCCCC", 5, 5, 2);
+                inp.SetPadding(10);
+                inp.SetValue('yeyty\nuu');
+                inp.SetBackground("#FF8080");
+                inp.SetId("red");
+                var inp2 = Form.AddInput(70,75,100,80);
+                inp2.SetBorder(3, "#000000", 20);
+                inp2.SetFont(34, "#000000", "Arial","left");
+                inp2.SetValue('gjkkk');
+                inp2.SetBackground("#CCCCCC");
+                inp2.SetId("gray");
+                inp2.SetIndex(10);
+                Form.InitDraw();
+            };
+        </script>
+    </head>
+    <body>
+        <canvas id="myCanvas" width="640" height="470">Oops!!!</canvas>
+    </body>
+</html>
