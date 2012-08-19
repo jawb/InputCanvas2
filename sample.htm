@@ -6,7 +6,7 @@
         border: 3px #000000 solid ;
     }
     </style>
-    <script type="text/javascript" src="inputcanvas_2.0.js"></script>
+    <script type="text/javascript" src="inputcanvas_2.js"></script>
     <script type="text/javascript">
             window.onload = function(){
                 var canvas = document.getElementById('myCanvas');
@@ -15,8 +15,8 @@
                 inp.SetBorder(5, "#FF0000", 100);
                 inp.SetFont(34, "#000000", "Arial","left");
                 inp.SetShadow("#CCCCCC", 5, 5, 2);
-                inp.SetPadding(10);
-                inp.SetValue('yeyty\nuu');
+                inp.SetPadding(3);
+                inp.SetValue('yeytyuu');
                 inp.SetBackground("#FF8080");
                 inp.SetId("red");
                 var inp2 = Form.AddInput(70,75,100,80);
@@ -26,6 +26,19 @@
                 inp2.SetBackground("#CCCCCC");
                 inp2.SetId("gray");
                 inp2.SetIndex(10);
+                var inp3 = Form.AddInput(270,25,150,190);
+                inp3.SetBorder(2, "#00FF00", 10);
+                inp3.SetFont(34, "#000000", "Arial","left");
+                inp3.SetValue('aabj\nhabzj\njhgjh');
+                inp3.SetBackground("#FC00CC");
+                inp3.SetId("violet");
+                var inp4 = Form.AddInput(470,225,150,180);
+                inp4.SetBorder(2, "#00FF00", 10);
+                inp4.SetFont(34, "#000000", "Arial","left");
+                inp4.SetValue('abcd\nefgh');
+                inp4.SetBackground("#FFFFFF");
+                inp4.SetId("white");
+                inp4.editable = true;
                 Form.InitDraw();
             };
         </script>
