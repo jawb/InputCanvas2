@@ -120,7 +120,7 @@ function BasicShape(x,y,width,height,cursor) {
     this.MouseDown = function (e){};
     this.MouseUp   = function (e){};
     this.KeyUp     = function (e){};
-    this.KeyPress  = function (e) {};
+    
 }
 
 /**
@@ -481,37 +481,37 @@ BasicShape.prototype.Click = function (context,offx,offy,e) {
 
 BasicShape.prototype.KeyDown = function (e) {
     var charCode = (e.which) ? e.which : event.keyCode;
-    if (charCode == 37) {
+    if (charCode == 37) { // Left
         if(this.cursor.i > 0) {
-            this.cursor.i = this.cursor.i - 1;
+            --this.cursor.i;
         }
         else if(this.cursor.j > 0) {
             this.cursor.j = this.cursor.j - 1;
             this.cursor.i = this.lines[this.cursor.j].length;
         }
     }
-    if (charCode == 39) {
+    if (charCode == 39) { // Right
         if(this.cursor.i < this.lines[this.cursor.j].length) {
-            this.cursor.i = this.cursor.i + 1;
+            ++this.cursor.i;
         }
         else if(this.cursor.j < this.lines.length-1) {
-            this.cursor.j = this.cursor.j + 1;
+            ++this.cursor.j;
             this.cursor.i = 0;
         }
     }
-    if (charCode == 38) {
+    if (charCode == 38) { // Up
         if(this.cursor.j > 0) {
             this.cursor.j = this.cursor.j - 1;
             this.cursor.i = Math.min(this.lines[this.cursor.j].length,this.cursor.i);
         }
     }
-    if (charCode == 40) {
+    if (charCode == 40) { // Down
         if(this.cursor.j < this.lines.length-1) {
-            this.cursor.j = this.cursor.j + 1;
+            ++this.cursor.j;
             this.cursor.i = Math.min(this.lines[this.cursor.j].length,this.cursor.i);
         }
     }
-    if (charCode == 8)  {
+    if (charCode == 8)  { //Backspace
         if(this.cursor.i > 0) {
             this.cursor.i = this.cursor.i-1;
             this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i)+
@@ -523,13 +523,22 @@ BasicShape.prototype.KeyDown = function (e) {
                 this.cursor.i = this.lines[this.cursor.j-1].length;
                 this.lines[this.cursor.j-1] = str;
                 this.lines.splice(this.cursor.j,1);
-                this.cursor.j = this.cursor.j - 1;
+                --this.cursor.j;
             }
         }
+    }
+    if (charCode == 46) { //Delete
+        
     }
     if ( typeof this.onKeyDown == 'function' ) this.onKeyDown(e);
 };
 
+BasicShape.prototype.KeyPress = function (e) {
+    this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i) + String.fromCharCode(e.charCode)+
+                                        this.lines[this.cursor.j].substring(this.cursor.i);
+    this.cursor.i++;
+    if ( typeof this.onKeyPress == 'function' ) this.onKeyPress(e);
+};
 /*
 =============================================================================================================================
 
@@ -553,6 +562,7 @@ function FormCanvas(canvas) {
     addEvent(canvas,'mousemove',function(e){tForm.MouseMove(e);});
     addEvent(canvas,'click',function(e){tForm.Click(e);});
     addEvent(document,'keydown',function(e){tForm.KeyDown(e);});
+    addEvent(document,'keypress',function(e){tForm.KeyPress(e);});
 }
 
 /**
