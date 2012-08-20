@@ -101,7 +101,7 @@ function BasicShape(x,y,width,height,cursor) {
     this.focusp   = false;                                        // Focus previous status
     this.visible  = true;                                         // Visibility
     this.editable = false;                                        // Editable or static text
-    this.value    = "";
+    this.lines    = [];
     this.font     = {size:14, color:"#000000", font:"Arial"};
 
     // Others
@@ -119,60 +119,8 @@ function BasicShape(x,y,width,height,cursor) {
     this.MouseOut  = function (e){console.log("Out :   " + this.id);};
     this.MouseDown = function (e){};
     this.MouseUp   = function (e){};
-    this.KeyDown   = function (e){};
     this.KeyUp     = function (e){};
-    this.KeyPress  = function (e){};
-
-    this.Blur = function (e){
-        console.log("Blur:   " + this.id);
-        if ( typeof this.onBlur == 'function' ) this.onBlur(e);
-    };
-    this.Focus = function (e){
-        console.log("Focus:  " + this.id);
-        if ( typeof this.onFocus == 'function' ) this.onFocus(e);
-    };
-    this.Click = function (context,offx,offy,e){
-        console.log("Click:  " + this.id);
-        if ( typeof this.onClick == 'function' ) this.onClick(e);
-        this.cursor.display = false;
-        if ( this.editable ) {
-            x = e.x - offx;
-            y = e.y - offy;
-            var Mcontrols = this.Mcontrols();
-            var lines = this.value.split("\n");
-            for (i=0;i<lines.length;++i) {
-                j = Mcontrols[0].y + i*this.font.size;
-                if(j<=y && y<=j+this.font.size) {
-                    this.cursor.posy = j;
-                    this.cursor.len  = this.font.size;
-                    this.cursor.display = true;
-                    this.cursor.counter = 0;
-                    line = "";
-                    width = Mcontrols[0].x;
-                    widthp = Mcontrols[0].x;
-                    for (ch=0;ch<lines[i].length;++ch) {
-                        line = line + lines[i][ch];
-                        context.font = this.font.size+"px "+this.font.family;
-                        widthp = width;
-                        width = Mcontrols[0].x + context.measureText(line).width;
-                        if ( widthp<x && x<width ) {
-                            cx = widthp + (width-widthp)/2;
-                            if(x<cx) this.cursor.posx = widthp;
-                            else this.cursor.posx = width;
-                            return;
-                        }
-                    }
-                    this.cursor.posx = width;
-                    return;
-                }
-            }
-            this.cursor.posx = Mcontrols[0].x + context.measureText(lines[lines.length-1]).width;
-            this.cursor.posy = Mcontrols[0].y + (lines.length-1)*this.font.size;
-            this.cursor.len  = this.font.size;
-            this.cursor.display = true;
-            this.cursor.counter = 0;
-        }
-    };
+    this.KeyPress  = function (e) {};
 }
 
 /**
@@ -240,7 +188,8 @@ BasicShape.prototype.SetBackground = function (color) {
     * @return void
 */
 BasicShape.prototype.SetValue = function (value) {
-    this.value  = value || "";
+    value  = value || "";
+    this.lines  = value.split("\n");
 };
 
 /**
@@ -451,12 +400,134 @@ BasicShape.prototype.Draw = function (context) {
     context.font         = this.font.size+"px "+this.font.family;
     context.fillStyle    = this.font.color;
     context.textBaseline = "top";
-    var lines = this.value.split("\n");
     if(this.editable) c = 0;
-    else c = this.height/2 - (lines.length*this.font.size/2) - this.font.size/4;
-    for (i=0;i<lines.length;++i)
-        context.fillText(lines[i], Mcontrols[0].x , Mcontrols[0].y + i*this.font.size + c);
+    else c = this.height/2 - (this.lines.length*this.font.size/2) - this.font.size/4;
+    for (i=0;i<this.lines.length;++i)
+        context.fillText(this.lines[i], Mcontrols[0].x , Mcontrols[0].y + i*this.font.size + c);
     context.restore();
+};
+
+BasicShape.prototype.DrawCursor = function (context) {
+    var Mcontrols = this.Mcontrols();
+    context.beginPath();
+    posx = Mcontrols[0].x + context.measureText(this.lines[this.cursor.j].substring(0,this.cursor.i)).width;
+    posy = Mcontrols[0].y + this.cursor.j * this.font.size;
+    context.moveTo(posx, posy);
+    context.lineTo(posx, posy + this.font.size);
+    context.lineWidth = 2;
+    context.lineCap = "butt";
+    context.strokeStyle = "#000000";
+    context.stroke();
+    context.closePath();
+};
+
+
+BasicShape.prototype.Blur = function (e) {
+    console.log("Blur:   " + this.id);
+    if ( this.editable ) {
+        this.cursor.i = 0;
+        this.cursor.j = 0;
+        this.cursor.display = false;
+        this.cursor.counter = 0;
+    }
+    if ( typeof this.onBlur == 'function' ) this.onBlur(e);
+};
+
+BasicShape.prototype.Focus = function (e) {
+    console.log("Focus:  " + this.id);
+    if ( typeof this.onFocus == 'function' ) this.onFocus(e);
+};
+
+BasicShape.prototype.Click = function (context,offx,offy,e) {
+    console.log("Click:  " + this.id);
+    if ( typeof this.onClick == 'function' ) this.onClick(e);
+    this.cursor.display = false;
+    if ( this.editable ) {
+        x = e.x - offx;
+        y = e.y - offy;
+        var Mcontrols = this.Mcontrols();
+        var lines = this.lines;
+        for (i=0;i<lines.length;++i) {
+            j = Mcontrols[0].y + i*this.font.size;
+            if(j<=y && y<=j+this.font.size) {
+                this.cursor.j = i;
+                this.cursor.display = true;
+                this.cursor.counter = 0;
+                line = "";
+                width = Mcontrols[0].x;
+                widthp = Mcontrols[0].x;
+                for (ch=0;ch<lines[i].length;++ch) {
+                    line = line + lines[i][ch];
+                    context.font = this.font.size+"px "+this.font.family;
+                    widthp = width;
+                    width = Mcontrols[0].x + context.measureText(line).width;
+                    if ( widthp<=x && x<=width ) {
+                        cx = widthp + (width-widthp)/2;
+                        if(x<cx) this.cursor.i = ch;
+                        else this.cursor.i = ch+1;
+                        return;
+                    }
+                }
+                this.cursor.i = lines[i].length;
+                return;
+            }
+        }
+        this.cursor.i = lines[lines.length-1].length;
+        this.cursor.j = lines.length-1;
+        this.cursor.display = true;
+        this.cursor.counter = 0;
+    }
+};
+
+BasicShape.prototype.KeyDown = function (e) {
+    var charCode = (e.which) ? e.which : event.keyCode;
+    if (charCode == 37) {
+        if(this.cursor.i > 0) {
+            this.cursor.i = this.cursor.i - 1;
+        }
+        else if(this.cursor.j > 0) {
+            this.cursor.j = this.cursor.j - 1;
+            this.cursor.i = this.lines[this.cursor.j].length;
+        }
+    }
+    if (charCode == 39) {
+        if(this.cursor.i < this.lines[this.cursor.j].length) {
+            this.cursor.i = this.cursor.i + 1;
+        }
+        else if(this.cursor.j < this.lines.length-1) {
+            this.cursor.j = this.cursor.j + 1;
+            this.cursor.i = 0;
+        }
+    }
+    if (charCode == 38) {
+        if(this.cursor.j > 0) {
+            this.cursor.j = this.cursor.j - 1;
+            this.cursor.i = Math.min(this.lines[this.cursor.j].length,this.cursor.i);
+        }
+    }
+    if (charCode == 40) {
+        if(this.cursor.j < this.lines.length-1) {
+            this.cursor.j = this.cursor.j + 1;
+            this.cursor.i = Math.min(this.lines[this.cursor.j].length,this.cursor.i);
+        }
+    }
+    if (charCode == 8)  {
+        if(this.cursor.i > 0) {
+            this.cursor.i = this.cursor.i-1;
+            this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i)+
+                                        this.lines[this.cursor.j].substring(this.cursor.i+1);
+        }
+        else {
+            if(this.cursor.j > 0) {
+                str = this.lines[this.cursor.j-1] + this.lines[this.cursor.j];
+                this.cursor.i = this.lines[this.cursor.j-1].length;
+                this.lines[this.cursor.j-1] = str;
+                this.lines.splice(this.cursor.j,1);
+                this.cursor.j = this.cursor.j - 1;
+            }
+        }
+    }
+    if ( typeof this.onKeyDown == 'function' ) this.onKeyDown(e);
 };
 
 /*
@@ -475,12 +546,13 @@ function FormCanvas(canvas) {
     this.sorted     = false;                                      // Is this.elements sorted
     this.overed     = false;                                      // Mouse over some input
     this.fps        = 30;                                         // Frame per second
-    this.cursor     = { posx:10, posy:10, len:14, display:true,   // Cursor (fps/times)
-                        view:false, times:2, counter:0 };
+    this.cursor     = { i:0, j:0, display:false, view:false,      // Cursor (fps/times)
+                       times:2, counter:0 };
     this.CustomDraw = function (){};                              // Draw other things on the canvas
     tForm = this;
     addEvent(canvas,'mousemove',function(e){tForm.MouseMove(e);});
     addEvent(canvas,'click',function(e){tForm.Click(e);});
+    addEvent(document,'keydown',function(e){tForm.KeyDown(e);});
 }
 
 /**
@@ -565,14 +637,11 @@ FormCanvas.prototype.DrawCursor = function () {
     if ( !this.start ) return;
     if ( !this.cursor.display ) return;
     if ( !this.cursor.view ) return;
-    this.context.beginPath();
-    this.context.moveTo(this.cursor.posx, this.cursor.posy);
-    this.context.lineTo(this.cursor.posx, this.cursor.posy + this.cursor.len);
-    this.context.lineWidth = 2;
-    this.context.lineCap = "butt";
-    this.context.strokeStyle = "#000000";
-    this.context.stroke();
-    this.context.closePath();
+    for ( var i=this.elements.length-1; i > -1; --i ) {
+        if(this.elements[i].focus) {
+            this.elements[i].DrawCursor(this.context);
+        }
+    }
 };
 
 // Event handling
@@ -614,14 +683,12 @@ FormCanvas.prototype.Click = function (e) {
             this.elements[i].focus = true;
             if(!this.elements[i].focusp) info = this.elements[i].Focus(e);
             this.elements[i].Click(this.context,this.canvas.offsetLeft,this.canvas.offsetTop,e);
+            console.log(this.cursor.i,this.cursor.j);
         }
         else {
             this.elements[i].focus = false;
             if(this.elements[i].focusp) {
                 this.cursor.display = false;
-                this.cursor.posx = 0;
-                this.cursor.posy = 0;
-                this.cursor.len = 0;
                 this.cursor.counter = 0;
                 this.elements[i].Blur(e);
             }
@@ -648,7 +715,7 @@ FormCanvas.prototype.onMouseUp = function (e) {
     }
 };
 
-FormCanvas.prototype.onKeyDown = function (e) {
+FormCanvas.prototype.KeyDown = function (e) {
     for ( var i=this.elements.length-1; i > -1; --i ) {
         if(this.elements[i].focus) {
             this.elements[i].KeyDown(e);
@@ -664,7 +731,7 @@ FormCanvas.prototype.onKeyUp = function (e) {
     }
 };
 
-FormCanvas.prototype.onKeyPress = function (e) {
+FormCanvas.prototype.KeyPress = function (e) {
     for ( var i=this.elements.length-1; i > -1; --i ) {
         if(this.elements[i].focus) {
             this.elements[i].KeyPress(e);
