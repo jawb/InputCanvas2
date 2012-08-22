@@ -114,13 +114,17 @@ function BasicShape(x,y,width,height,cursor) {
     this.index    = 0;                                            // CSS z-index like
     
     // Event hundlers.
-    this.MouseMove = function (e){};
-    this.MouseOver = function (e){console.log("Over:   " + this.id);};
-    this.MouseOut  = function (e){console.log("Out :   " + this.id);};
-    this.MouseDown = function (e){};
-    this.MouseUp   = function (e){};
-    this.KeyUp     = function (e){};
-    
+    this.onMouseMove = function (){};
+    this.onMouseOver = function (){};
+    this.onMouseOut  = function (){};
+    this.onMouseDown = function (){};
+    this.onMouseUp   = function (){};
+    this.onKeyDown   = function (){};
+    this.onKeyUp     = function (){};
+    this.onKeyPress  = function (){};
+    this.onBlur      = function (){};
+    this.onFocus     = function (){};
+    this.onClick     = function (){};
 }
 
 /**
@@ -338,18 +342,6 @@ BasicShape.prototype.In = function (x,y,offx,offy) {
     else return false;
 };
 
-BasicShape.prototype.onMouseMove = function (){};
-BasicShape.prototype.onMouseOver = function (){};
-BasicShape.prototype.onMouseOut  = function (){};
-BasicShape.prototype.onMouseDown = function (){};
-BasicShape.prototype.onMouseUp   = function (){};
-BasicShape.prototype.onKeyDown   = function (){};
-BasicShape.prototype.onKeyUp     = function (){};
-BasicShape.prototype.onKeyPress  = function (){};
-BasicShape.prototype.onBlur      = function (){};
-BasicShape.prototype.onFocus     = function (){};
-BasicShape.prototype.onClick     = function (){};
-
 /**
     * Draw input's shape.
     * @param Obj canvas : Reference to the canvas
@@ -506,19 +498,19 @@ BasicShape.prototype.KeyDown = function (e) {
         }
     }
     if (charCode == 40) { // Down
-        if(this.cursor.j < this.lines.length-1) {
+        if (this.cursor.j < this.lines.length-1) {
             ++this.cursor.j;
             this.cursor.i = Math.min(this.lines[this.cursor.j].length,this.cursor.i);
         }
     }
     if (charCode == 8)  { //Backspace
-        if(this.cursor.i > 0) {
+        if (this.cursor.i > 0) {
             this.cursor.i = this.cursor.i-1;
             this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i)+
                                         this.lines[this.cursor.j].substring(this.cursor.i+1);
         }
         else {
-            if(this.cursor.j > 0) {
+            if (this.cursor.j > 0) {
                 str = this.lines[this.cursor.j-1] + this.lines[this.cursor.j];
                 this.cursor.i = this.lines[this.cursor.j-1].length;
                 this.lines[this.cursor.j-1] = str;
@@ -528,7 +520,16 @@ BasicShape.prototype.KeyDown = function (e) {
         }
     }
     if (charCode == 46) { //Delete
-        
+        if (this.cursor.j == this.lines.length-1 && this.cursor.i == this.lines[this.cursor.j].length) return;
+        if (this.cursor.i == this.lines[this.cursor.j].length) {
+            str = this.lines[this.cursor.j] + this.lines[this.cursor.j+1];
+            this.lines[this.cursor.j] = str;
+            this.lines.splice(this.cursor.j+1,1);
+        }
+        else {
+            this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i)+
+                                        this.lines[this.cursor.j].substring(this.cursor.i+1);
+        }
     }
     if ( typeof this.onKeyDown == 'function' ) this.onKeyDown(e);
 };
@@ -539,6 +540,13 @@ BasicShape.prototype.KeyPress = function (e) {
     this.cursor.i++;
     if ( typeof this.onKeyPress == 'function' ) this.onKeyPress(e);
 };
+
+BasicShape.prototype.MouseMove = function (e){};
+BasicShape.prototype.MouseOver = function (e){console.log("Over:   " + this.id);};
+BasicShape.prototype.MouseOut  = function (e){console.log("Out :   " + this.id);};
+BasicShape.prototype.MouseDown = function (e){};
+BasicShape.prototype.MouseUp   = function (e){};
+BasicShape.prototype.KeyUp     = function (e){};
 /*
 =============================================================================================================================
 
