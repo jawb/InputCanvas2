@@ -90,28 +90,27 @@ var addEvent = (function () {
 
 function BasicShape(x,y,width,height,cursor) {
     // Main proprieties
-    this.cursor = cursor || null;
-
-    this.x        = x || 0;                                       // Top left corner X
-    this.y        = y || 0;                                       // Top left corner Y
-    this.id       = '';                                           // Identifier
-    this.mousein  = false;                                        // Mouse status
-    this.mouseinp = false;                                        // Mouse previous Status
-    this.focus    = false;                                        // Focus status
-    this.focusp   = false;                                        // Focus previous status
-    this.visible  = true;                                         // Visibility
-    this.editable = false;                                        // Editable or static text
-    this.lines    = [];
-    this.font     = {size:14, color:"#000000", font:"Arial"};
+    this.cursor     = cursor;
+    this.x          = x || 0;                                       // Top left corner X
+    this.y          = y || 0;                                       // Top left corner Y
+    this.id         = '';                                           // Identifier
+    this.mousein    = false;                                        // Mouse status
+    this.mouseinp   = false;                                        // Mouse previous Status
+    this.focus      = false;                                        // Focus status
+    this.focusp     = false;                                        // Focus previous status
+    this.visible    = true;                                         // Visibility
+    this.editable   = false;                                        // Editable or static text
+    this.multilines = true;
+    this.font       = {size:14, color:"#000000", font:"Arial"};
 
     // Others
-    this.width    = width;                                        // Width
-    this.height   = height;                                       // Height
-    this.padding  = [1, 1, 1, 1];                                 // Padding
-    this.border   = {color:"#000000",size:2,radius:[1, 1, 1, 1]}; // Border
-    this.shadow   = {color:"000000",blur:0,x:0,y:0};              // Shadow
-    this.bg       = "#FFFFFF";                                    // Background color
-    this.index    = 0;                                            // CSS z-index like
+    this.width      = width;                                        // Width
+    this.height     = height;                                       // Height
+    this.padding    = [1, 1, 1, 1];                                 // Padding
+    this.border     = {color:"#000000",size:2,radius:[1, 1, 1, 1]}; // Border
+    this.shadow     = {color:"000000",blur:0,x:0,y:0};              // Shadow
+    this.bg         = "#FFFFFF";                                    // Background color
+    this.index      = 0;                                            // CSS z-index like
     
     // Event hundlers.
     this.onMouseMove = function (){};
@@ -472,6 +471,7 @@ BasicShape.prototype.Click = function (context,offx,offy,e) {
 };
 
 BasicShape.prototype.KeyDown = function (e) {
+    console.log(this.lines,this.cursor.i,this.cursor.j);
     var charCode = (e.which) ? e.which : event.keyCode;
     if (charCode == 37) { // Left
         if(this.cursor.i > 0) {
@@ -505,6 +505,7 @@ BasicShape.prototype.KeyDown = function (e) {
     }
     if (charCode == 8)  { //Backspace
         if (this.cursor.i > 0) {
+            console.log("1111111111111111",this.cursor.i);
             this.cursor.i = this.cursor.i-1;
             this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i)+
                                         this.lines[this.cursor.j].substring(this.cursor.i+1);
@@ -531,13 +532,29 @@ BasicShape.prototype.KeyDown = function (e) {
                                         this.lines[this.cursor.j].substring(this.cursor.i+1);
         }
     }
+    if (charCode == 13) { //Enter
+        str = this.lines[this.cursor.j].substring(this.cursor.i);
+        this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i);
+        this.lines.splice(this.cursor.j+1,0,str);
+        this.cursor.i = 0;
+        this.cursor.j = this.cursor.j+1;
+    }
+    if (charCode == 35) { //End
+        this.cursor.i = this.lines[this.cursor.j].length;
+    }
+    if (charCode == 36) { //Home
+        this.cursor.i = 0;
+    }
     if ( typeof this.onKeyDown == 'function' ) this.onKeyDown(e);
 };
 
 BasicShape.prototype.KeyPress = function (e) {
-    this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i) + String.fromCharCode(e.charCode)+
-                                        this.lines[this.cursor.j].substring(this.cursor.i);
-    this.cursor.i++;
+    var charCode = (e.which) ? e.which : event.keyCode;
+    if (charCode != 13) {
+        this.lines[this.cursor.j] = this.lines[this.cursor.j].substring(0,this.cursor.i) + String.fromCharCode(charCode)+
+                                    this.lines[this.cursor.j].substring(this.cursor.i);
+        this.cursor.i++;
+    }
     if ( typeof this.onKeyPress == 'function' ) this.onKeyPress(e);
 };
 
